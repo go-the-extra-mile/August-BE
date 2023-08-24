@@ -281,8 +281,6 @@ class Command(BaseCommand):
         if semester is not None and len(str(semester)) != 6:
             raise CommandError('The semester number should be a 6-digit number. (ex. 202308)')
         
-        print(f'{resource_type} {semester} {one_page_only}')
-        
         if resource_type == 'section':
             url = f"https://api.umd.io/v1/courses/sections?semester={semester}&page=1&per_page=100"
             self.populate_from_api(url, self.populate_opened_sections, one_page_only=one_page_only)
