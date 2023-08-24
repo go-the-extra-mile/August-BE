@@ -1,5 +1,5 @@
 import requests
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from datetime import datetime
 
 from apps.courses.models import (
@@ -266,9 +266,18 @@ class Command(BaseCommand):
             else:
                 url = response.headers.get('X-Next-Page', '')
 
+    def add_arguments(self, parser):
+        parser.add_argument('--semester', type=int, help='A 6-digit semester number (ex. 202308)')
+        parser.add_argument('--test', action='store_true', help='Fetch only the first 100 data if flag is set, otherwise fetch all pages')
+
     def handle(self, *args, **options):
-        # url = "https://api.umd.io/v1/courses?semester=202308&page=1&per_page=100"
-        # self.populate_from_api(url, self.populate_courses, one_page_only=False)
+        semester = options['semester']
+        one_page_only = options['test']
+
+        if len(str(semester)) != 6:
+            raise CommandError('The semester number should be a 6-digit number. (ex. 202308)')
         
-        url = "https://api.umd.io/v1/courses/sections?semester=202308&page=1&per_page=100"
-        self.populate_from_api(url, self.populate_opened_sections, one_page_only=False)
+        url = f"https://api.umd.io/v1/courses/sections?semester={semester}&page=1&per_page=100"
+        self.populate_from_api(url, self.populate_opened_sections, one_page_only=one_page_only)
+
+        self.stdout.write(self.style.SUCCESS(f'Successfully fetched data for semester {semester} with one_page_only={one_page_only}'))
