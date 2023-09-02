@@ -1,6 +1,7 @@
 from collections import defaultdict
 from rest_framework import serializers
 from apps.courses.models import (
+    Course,
     Instructor,
     Meeting, 
     OpenedSection,
@@ -17,14 +18,6 @@ class MeetingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Meeting
         fields = ('building', 'room', 'days', 'start_time', 'end_time')
-
-class InstructorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Instructor
-        fields = ('name', )
-
-    def to_representation(self, instance):
-        return instance.name
 
 class InstructorNameTeachSerializer(serializers.ModelSerializer):
     class Meta:
@@ -46,14 +39,15 @@ class OpenedSectionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OpenedSection
-        fields = ('id', 
-                  'name', 
-                  'course_code', 
-                  'section_code', 
-                  'instructors', 
-                  'meetings', 
-                  'credits',
-                  )
+        fields = (
+            'id', 
+            'name', 
+            'course_code', 
+            'section_code', 
+            'instructors', 
+            'meetings', 
+            'credits',
+        )
         
 class MergedMeetingsOpenedSectionSerializer(OpenedSectionSerializer):
     meetings = serializers.SerializerMethodField(method_name='get_meetings_with_merged_days')
@@ -85,5 +79,58 @@ class MergedMeetingsOpenedSectionSerializer(OpenedSectionSerializer):
             serialized_meeting = MeetingSerializer(meeting).data
             serialized_meeting['days'] = merged_days[k]
             res.append(serialized_meeting)
+        
+        return res
+
+class BaseCourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = (
+            'name', 
+            'course_code', 
+            'credits', 
+        )
+
+class BaseInstructorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Instructor
+        fields = (
+            'name',
+        )
+
+class InstructorSectionSerializer(BaseInstructorSerializer):
+    sections = serializers.SerializerMethodField()
+    class Meta(BaseInstructorSerializer.Meta):
+        fields = BaseInstructorSerializer.Meta.fields + (
+            'sections',
+        )
+    
+    def get_sections(self, instructor):
+        instructor_sections = self.context.get('instructor_sections')
+        if instructor_sections is None: return None
+
+        return MergedMeetingsOpenedSectionSerializer(instructor_sections, many=True).data
+
+class CourseSectionSerializer(BaseCourseSerializer):
+    sections_by_instructor = serializers.SerializerMethodField()
+    
+    class Meta(BaseCourseSerializer.Meta):
+        fields = BaseCourseSerializer.Meta.fields + (
+            'sections_by_instructor', 
+        )
+
+    def get_sections_by_instructor(self, course):
+        course_opened_sections = self.context.get('course_opened_sections', None)
+        if course_opened_sections is None: return None
+
+        # set of distinct instructors of course's opened sections
+        teaches = Teach.objects.filter(opened_section__in=course_opened_sections)
+        instructors = Instructor.objects.filter(teach__in=teaches).distinct()
+
+        res = []
+        for instructor in instructors:
+            instructor_sections = course_opened_sections.filter(teach__instructor=instructor)
+
+            res.append(InstructorSectionSerializer(instructor, context={'instructor_sections': instructor_sections}).data)
         
         return res

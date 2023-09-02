@@ -23,5 +23,6 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 STATIC_URL = "static/" # required by django-debug-toolbar
 
 ALLOWED_HOSTS = [
-    '223.130.139.5'
+    '223.130.139.5', 
+    '127.0.0.1',
 ]

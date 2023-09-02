@@ -6,13 +6,11 @@ from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from apps.courses.serializers import MergedMeetingsOpenedSectionSerializer
-from apps.courses.models import Meeting, OpenedSection, Teach
+from apps.courses.serializers import CourseSectionSerializer
+from apps.courses.models import Course, Meeting, OpenedSection, Teach
 
 # Create your views here.
 class OpenedSectionListView(generics.ListAPIView):
-    serializer_class = MergedMeetingsOpenedSectionSerializer
-
     def get_queryset(self):
         semester_code = self.request.query_params.get('semester', None)
         query_type = self.request.query_params.get('querytype', None)
@@ -27,35 +25,49 @@ class OpenedSectionListView(generics.ListAPIView):
         
         queryset = OpenedSection.objects.filter(semester__code=semester_code).select_related('section__course')
         if query_type == 'code':
-            if len(query) < 4: 
-                raise ValidationError('Provide course code of at least 4 letters')
+            if len(query) < 5: 
+                raise ValidationError('Provide course code of at least 5 letters')
             queryset = queryset.filter(section__course__course_code__icontains=query)
         elif query_type == 'name':
-            if len(query) < 4:
-                raise ValidationError('Provide course name of at least 4 letters')
+            if len(query) < 5:
+                raise ValidationError('Provide course name of at least 5 letters')
             queryset = queryset.filter(section__course__name__icontains=query)
         else:
             raise ValidationError('Invalid "querytype" query parameter. Acceptable values are "code", "name"')
         
-        # prefetch teach_set and instructors as teachs_cached
+        # prefetch related teach, instructors
         teach_set_prefetch = Prefetch(
             lookup='teach_set', 
             queryset=Teach.objects.select_related('instructor'),
         )
         queryset = queryset.prefetch_related(teach_set_prefetch)
 
-        # prefetch meetings and duration, location, day as meetings_cached
+        # prefetch related meetings, duration, location, and day
         meeting_set_prefetch = Prefetch(
             lookup='meeting_set', 
             queryset=Meeting.objects.select_related('duration', 'location', 'day'), 
         )
         queryset = queryset.prefetch_related(meeting_set_prefetch)
 
-        print(f'ran')
+        # select related section, course
+        queryset = queryset.select_related('section__course')
+
         return queryset
     
     def get(self, request, *args, **kwargs):
         try: 
-            return super().get(request, *args, **kwargs)
+            return self.list(request, *args, **kwargs)
         except ValidationError as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+        
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset()) # queryset of OpenedSection
+        
+        courses = Course.objects.filter(section__openedsection__in=queryset).distinct() # courses: distinct courses of queryset
+        
+        res = []
+        for course in courses:
+            course_opened_sections = queryset.filter(section__course=course)
+            res.append(CourseSectionSerializer(course, context={'course_opened_sections': course_opened_sections}).data)
+
+        return Response(res)

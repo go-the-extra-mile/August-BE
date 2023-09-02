@@ -188,6 +188,9 @@ class GeneratedTimeTableView(GenerateTimeTableMixin, APIView):
         
         return Response(res)
     
+    def post(self, request, format=None):
+        return self.get(request, format)
+    
 
 class GeneratedTimeTableCountView(GenerateTimeTableMixin, APIView):
     def get(self, request, format=None):
@@ -205,26 +208,6 @@ class GeneratedTimeTableCountView(GenerateTimeTableMixin, APIView):
         self.generate_with_options(opened_section_id_groups, options)
 
         return Response(len(self.generated_time_tables))
-
-
-class TestOpenedSectionListView(APIView):
-    def get(self, request, format=None):
-        groups = request.data['groups']
-        sections = [s for group in groups for s in group]
-
-
-        queryset = OpenedSection.objects.filter(id__in=sections)
-        queryset.select_related('section__course')
-        meeting_set_prefetch = Prefetch(
-            lookup='meeting_set', 
-            queryset=Meeting.objects.select_related('duration', 'location', 'day'), 
-        )
-        queryset = queryset.prefetch_related(meeting_set_prefetch)
-
-        teach_set_prefetch = Prefetch(
-            lookup='teach_set', 
-            queryset=Teach.objects.select_related('instructor')
-        )
-        queryset = queryset.prefetch_related(teach_set_prefetch)
-        
-        return Response(OpenedSectionSerializer(queryset, many=True).data)
+    
+    def post(self, request, format=None):
+        return self.get(request, format)
