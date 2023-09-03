@@ -35,6 +35,11 @@ class Command(BaseCommand):
                 converted_meeting['location'] = {}
                 converted_meeting['location']['building'] = meet['building']
                 converted_meeting['location']['room'] = meet['room']
+
+                if meet['room'] == 'ONLINE':
+                    converted_meeting['location']['building'] = 'ONLINE'
+                    converted_meeting['location']['room'] = ''
+
                 res.append(converted_meeting)
         
         return res
