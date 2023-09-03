@@ -23,11 +23,9 @@ class GenerateTimeTableMixin:
             late_sections = sections
             for section in sections:
                 if section.meeting_set.filter(duration__start_time__lt=min_start_time).count() >= 1:
-                    late_sections = sections.exclude(id=section.id)
+                    late_sections = late_sections.exclude(id=section.id)
                 
             res.append(late_sections)
-            # filtered_queryset = queryset.filter(meeting__duration__start_time__gte=min_start_time)
-            # res.append(filtered_queryset)
         
         self.groups = res
 
