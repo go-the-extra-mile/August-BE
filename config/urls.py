@@ -18,14 +18,17 @@ from django.contrib import admin
 from django.urls import include, path
 from django.conf import settings
 
+from apps.courses.views import SemestersListView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')), 
     path('sections/', include('courses.urls')), 
     path('wizard/', include('wizard.urls')), 
+    path('semesters/', SemestersListView.as_view()),
 ]
 
 if settings.DEBUG:
     urlpatterns = [
-           path("__debug__/", include("debug_toolbar.urls")), 
+        path("__debug__/", include("debug_toolbar.urls")), 
     ] + urlpatterns
