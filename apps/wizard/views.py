@@ -16,6 +16,7 @@ class GenerateTimeTableMixin:
     generated_time_tables = None
     minimum_interval = None
     maximum_interval = None
+    maximum_consecutive_classes = None
 
     def exclude_early_classes(self, min_start_time):
         res = []
@@ -66,6 +67,31 @@ class GenerateTimeTableMixin:
         
         return False
     
+    def _too_many_consec_classes(self, meetings1, meetings2):
+        if self.maximum_consecutive_classes is None: 
+            return False
+
+        all_meetings = meetings1 | meetings2
+        days_in_meetings = all_meetings.values_list('day', flat=True).distinct()
+
+        for day in days_in_meetings:
+            consec_cnt = 1
+            day_meetings = all_meetings.filter(day=day).order_by('duration__start_time')
+            for i in range(0, len(day_meetings) - 1):
+                before = day_meetings[i]
+                after = day_meetings[i+1]
+
+                # interval = (start time of after) - (end time of before)
+                today = datetime.today().date()
+                interval = datetime.combine(today, after.duration.start_time) - datetime.combine(today, before.duration.end_time)
+
+                if interval <= timedelta(minutes=15):
+                    consec_cnt += 1
+                    if consec_cnt > self.maximum_consecutive_classes: return True
+
+        return False
+
+    
     def exclude_one_class_a_day_tables(self):
         res = []
 
@@ -103,11 +129,16 @@ class GenerateTimeTableMixin:
 
         meetings = section.meeting_set.all()
 
+        all_existing_meetings = Meeting.objects.none()
         for existing_section in table:
             existing_meetings = existing_section.meeting_set.all()
+            all_existing_meetings |= existing_meetings
+
             if self._overlap(meetings, existing_meetings): return False
             if self._too_short_interval(meetings, existing_meetings): return False
             if self._too_long_interval(meetings, existing_meetings): return False
+
+        if self._too_many_consec_classes(meetings, all_existing_meetings): return False
     
         return True
 
@@ -156,6 +187,14 @@ class GenerateTimeTableMixin:
         if max_interval is not None:
             self.maximum_interval = datetime.strptime(max_interval, '%H:%M').time()
             self.maximum_interval = timedelta(hours=self.maximum_interval.hour, minutes=self.maximum_interval.minute)
+
+        consec_classes = options.get('allow_consec', None)
+        if consec_classes is not None:
+            try: 
+                self.maximum_consecutive_classes = int(consec_classes)
+            except ValueError as e:
+                print(f'Wrong value given for allow_consec: {consec_classes}')
+                print(e)
 
         self.generate_time_tables()
         
