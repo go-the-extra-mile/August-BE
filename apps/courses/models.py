@@ -45,9 +45,19 @@ class Teach(models.Model):
     instructor = models.ForeignKey('Instructor', on_delete=models.CASCADE)
     opened_section = models.ForeignKey('OpenedSection', on_delete=models.CASCADE)
 
+class Building(models.Model):
+    full_name = models.CharField('Full Name', max_length=255, blank=True)
+    nickname = models.CharField('Short Name', max_length=127)
+    latitude = models.FloatField('위도', default=38.98596)
+    longitude = models.FloatField('경도', default=-76.94457)
+
+    def __str__(self) -> str:
+        return f'{self.nickname}'
+
+
 class Location(models.Model):
     room = models.CharField(max_length=32)
-    building = models.CharField(max_length=32)
+    building = models.ForeignKey('Building', null=True, on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.building} {self.room}'
