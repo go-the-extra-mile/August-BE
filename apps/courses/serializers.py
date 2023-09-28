@@ -9,7 +9,7 @@ from apps.courses.models import (
 )
 
 class MeetingSerializer(serializers.ModelSerializer):
-    building = serializers.CharField(source='location.building')
+    building = serializers.CharField(source='location.building.nickname')
     room = serializers.CharField(source='location.room')
     days = serializers.StringRelatedField(source='day.day')
     start_time = serializers.TimeField(format='%H:%M', source='duration.start_time')
