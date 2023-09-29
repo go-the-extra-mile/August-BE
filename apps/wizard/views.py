@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from geopy.distance import distance
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -17,6 +18,7 @@ class GenerateTimeTableMixin:
     minimum_interval = None
     maximum_interval = None
     maximum_consecutive_classes = None
+    exclude_run_timetable = None
 
     def exclude_early_classes(self, min_start_time):
         res = []
@@ -104,6 +106,40 @@ class GenerateTimeTableMixin:
                         return True
 
         return False
+    
+    def _should_run(self, meetings1, meetings2):
+        # Given two meeting sets, return True if there exists two consecutive classes(15min or less interval) 
+        # that takes longer than 15 minutes to walk
+        # Requires coordinates be saved in Building
+
+        if self.exclude_run_timetable is not True: 
+            return False
+
+        for m1 in meetings1:
+            for m2 in meetings2:
+                before = m1 if m1.duration.start_time <= m2.duration.start_time else m2
+                after = m2 if before == m1 else m1
+
+                # interval = (start time of after) - (end time of before)
+                today = datetime.today().date()
+                interval = datetime.combine(
+                    today, after.duration.start_time
+                ) - datetime.combine(today, before.duration.end_time)
+
+                if interval <= timedelta(minutes=15):
+                    bldg1 = before.location.building
+                    bldg2 = after.location.building
+                    if (bldg1.has_coordinates() and bldg2.has_coordinates()):
+                        # (distance in meters) / (60 meters per minute)
+                        # 60 meters per minute = 3.6km per hour
+                        # slow walking speed used since distance is shorter than real walking distance
+                        walking_time = timedelta(minutes=distance(bldg1.coordinates, bldg2.coordinates).meters / 60) 
+
+                        if walking_time > interval:
+                            return True
+        
+        return False
+
 
     def exclude_one_class_a_day_tables(self):
         res = []
@@ -157,6 +193,8 @@ class GenerateTimeTableMixin:
             if self._too_short_interval(meetings, existing_meetings):
                 return False
             if self._too_long_interval(meetings, existing_meetings):
+                return False
+            if self._should_run(meetings, existing_meetings):
                 return False
 
         if self._too_many_consec_classes(meetings, all_existing_meetings):
@@ -224,6 +262,14 @@ class GenerateTimeTableMixin:
                 self.maximum_consecutive_classes = int(consec_classes)
             except ValueError as e:
                 print(f"Wrong value given for allow_consec: {consec_classes}")
+                print(e)
+
+        allow_run = options.get("allow_run", None)
+        if allow_run is not None:
+            try: 
+                self.exclude_run_timetable = not bool(allow_run)
+            except ValueError as e:
+                print(f"Wrong value given for allow_run: {allow_run}")
                 print(e)
 
         self.generate_time_tables()

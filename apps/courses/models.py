@@ -60,6 +60,10 @@ class Building(models.Model):
     
     def has_coordinates(self):
         return (self.latitude, self.longitude) != self.DEFAULT_COORD
+    
+    @property
+    def coordinates(self):
+        return (self.latitude, self.longitude)
 
 
 class Location(models.Model):
