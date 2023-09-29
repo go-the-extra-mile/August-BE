@@ -226,7 +226,7 @@ class GenerateTimeTableMixin:
                 Prefetch(
                     lookup="meeting_set",
                     queryset=Meeting.objects.select_related(
-                        "duration", "day", "location"
+                        "duration", "day", "location", "location__building"
                     ),
                 )
             )
@@ -235,31 +235,44 @@ class GenerateTimeTableMixin:
         return groups
 
     def generate_with_options(self, opened_section_id_groups, options):
+        if not isinstance(opened_section_id_groups, list) and all(isinstance(i, int) for i in opened_section_id_groups): return
         self.groups = self.to_opened_sections_groups(opened_section_id_groups)
 
         minimum_start_time = options.get("minimum_start_time", None)
         if minimum_start_time is not None:
-            minimum_start_time = datetime.strptime(minimum_start_time, "%H:%M").time()
-            self.exclude_early_classes(minimum_start_time)
+            try: 
+                minimum_start_time = datetime.strptime(minimum_start_time, "%H:%M").time()
+                self.exclude_early_classes(minimum_start_time)
+            except ValueError as e:
+                print(f"Wrong value given for minimum_start_time: {minimum_start_time}")
+                print(e)
 
         min_interval = options.get("minimum_interval", None)
         if min_interval is not None:
-            self.minimum_interval = datetime.strptime(min_interval, "%H:%M").time()
-            self.minimum_interval = timedelta(
-                hours=self.minimum_interval.hour, minutes=self.minimum_interval.minute
-            )
+            try: 
+                self.minimum_interval = datetime.strptime(min_interval, "%H:%M").time()
+                self.minimum_interval = timedelta(
+                    hours=self.minimum_interval.hour, minutes=self.minimum_interval.minute
+                )
+            except ValueError as e:
+                print(f"Wrong value given for minimum_interval: {minimum_start_time}")
+                print(e)
 
         max_interval = options.get("maximum_interval", None)
         if max_interval is not None:
-            self.maximum_interval = datetime.strptime(max_interval, "%H:%M").time()
-            self.maximum_interval = timedelta(
-                hours=self.maximum_interval.hour, minutes=self.maximum_interval.minute
-            )
+            try: 
+                self.maximum_interval = datetime.strptime(max_interval, "%H:%M").time()
+                self.maximum_interval = timedelta(
+                    hours=self.maximum_interval.hour, minutes=self.maximum_interval.minute
+                )
+            except ValueError as e:
+                print(f"Wrong value given for maximum_interval: {max_interval}")
+                print(e)
 
         consec_classes = options.get("allow_consec", None)
         if consec_classes is not None:
             try:
-                self.maximum_consecutive_classes = int(consec_classes)
+                self.maximum_consecutive_classes = int(consec_classes) if int(consec_classes) >= 1 else None
             except ValueError as e:
                 print(f"Wrong value given for allow_consec: {consec_classes}")
                 print(e)
@@ -276,8 +289,14 @@ class GenerateTimeTableMixin:
 
         allow_one_class_a_day = options.get("allow_one_class_a_day", None)
         if allow_one_class_a_day is not None:
-            if not allow_one_class_a_day:
-                self.exclude_one_class_a_day_tables()
+            try: 
+                allow_one_class_a_day = bool(allow_one_class_a_day)
+                if allow_one_class_a_day is not True:
+                    self.exclude_one_class_a_day_tables()
+            except ValueError as e:
+                print(f"Wrong value given for allow_one_class_a_day: {allow_one_class_a_day}")
+                print(e)
+
 
 
 class GeneratedTimeTableView(GenerateTimeTableMixin, APIView):
@@ -296,8 +315,12 @@ class GeneratedTimeTableView(GenerateTimeTableMixin, APIView):
         self.generate_with_options(opened_section_id_groups, options)
 
         res = []
-        for table in self.generated_time_tables:
-            res.append(OpenedSectionSerializer(table, many=True).data)
+        try: 
+            for table in self.generated_time_tables:
+                res.append(OpenedSectionSerializer(table, many=True).data)
+        except TypeError as e:
+            print(f"No generated time tables")
+            print(e)
 
         return Response(res)
 
@@ -320,7 +343,12 @@ class GeneratedTimeTableCountView(GenerateTimeTableMixin, APIView):
 
         self.generate_with_options(opened_section_id_groups, options)
 
-        return Response(len(self.generated_time_tables))
+        try: 
+            return Response(len(self.generated_time_tables))
+        except TypeError as e:
+            print("No generated time tables")
+            print(e)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, format=None):
         return self.get(request, format)
