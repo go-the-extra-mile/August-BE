@@ -13,7 +13,7 @@ DEPLOY_DB_PASSWORD = get_secret('DEPLOY_DB_PASSWORD')
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'august_deploy_db',
+        'NAME': 'august-db',
         'USER': DEPLOY_DB_USER,
         'PASSWORD': DEPLOY_DB_PASSWORD,
         'HOST': 'localhost',
