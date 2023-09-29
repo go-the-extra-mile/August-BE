@@ -1,4 +1,5 @@
 from django.db import models
+from collections import namedtuple
 
 class Semester(models.Model):
     code = models.IntegerField()
@@ -46,13 +47,19 @@ class Teach(models.Model):
     opened_section = models.ForeignKey('OpenedSection', on_delete=models.CASCADE)
 
 class Building(models.Model):
+    Coord = namedtuple("Coordinate", ["y", "x"])
+    DEFAULT_COORD = Coord(38.98596, -76.94457)
+
     full_name = models.CharField('Full Name', max_length=255, blank=True)
     nickname = models.CharField('Short Name', max_length=127)
-    latitude = models.FloatField('위도', default=38.98596)
-    longitude = models.FloatField('경도', default=-76.94457)
+    latitude = models.FloatField('위도', default=DEFAULT_COORD.y)
+    longitude = models.FloatField('경도', default=DEFAULT_COORD.x)
 
     def __str__(self) -> str:
         return f'{self.nickname}'
+    
+    def has_coordinates(self):
+        return (self.latitude, self.longitude) != self.DEFAULT_COORD
 
 
 class Location(models.Model):
