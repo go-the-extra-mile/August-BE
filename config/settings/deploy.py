@@ -4,6 +4,7 @@ DEBUG = False
 
 ALLOWED_HOSTS = [
     '223.130.139.5',
+    'ec2-15-164-218-52.ap-northeast-2.compute.amazonaws.com',
 ]
 
 DEPLOY_DB_USER = get_secret('DEPLOY_DB_USER')
