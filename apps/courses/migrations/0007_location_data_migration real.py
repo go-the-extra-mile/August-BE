@@ -13,6 +13,8 @@ def migrate_building_data(apps, schema_editor):
             nickname=location.building,
             defaults={
                 'full_name': '',  # Default values since we don't have these initially.,
+                'latitude': 38.98596, 
+                'longitude': -76.94457,
             }
         )
         
