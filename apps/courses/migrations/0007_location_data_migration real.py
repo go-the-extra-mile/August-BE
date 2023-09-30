@@ -12,7 +12,7 @@ def migrate_building_data(apps, schema_editor):
         building_obj, created = Building.objects.get_or_create(
             nickname=location.building,
             defaults={
-                'full_name': '',  # Default values since we don't have these initially.
+                'full_name': '',  # Default values since we don't have these initially.,
             }
         )
         
