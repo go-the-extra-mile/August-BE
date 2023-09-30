@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('courses', '0007_location_data_migration'),
+        ('courses', '0007_location_data_migration real'),
     ]
 
     operations = [

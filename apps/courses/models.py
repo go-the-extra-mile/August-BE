@@ -47,13 +47,16 @@ class Teach(models.Model):
     opened_section = models.ForeignKey('OpenedSection', on_delete=models.CASCADE)
 
 class Building(models.Model):
-    Coord = namedtuple("Coordinate", ["y", "x"])
-    DEFAULT_COORD = Coord(38.98596, -76.94457)
+    def get_default_latitude():
+        return 38.98596
+
+    def get_default_longitude():
+        return -76.94457
 
     full_name = models.CharField('Full Name', max_length=255, blank=True)
     nickname = models.CharField('Short Name', max_length=127)
-    latitude = models.FloatField('위도', default=DEFAULT_COORD.y)
-    longitude = models.FloatField('경도', default=DEFAULT_COORD.x)
+    latitude = models.FloatField('위도', default=get_default_latitude)
+    longitude = models.FloatField('경도', default=get_default_longitude)
 
     def __str__(self) -> str:
         return f'{self.nickname}'
