@@ -30,3 +30,7 @@ DJANGO_APPS += [
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+CSRF_TRUSTED_ORIGINS = [
+        'http://ec2-15-164-218-52.ap-northeast-2.compute.amazonaws.com:8081'
+]
