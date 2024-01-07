@@ -1,6 +1,14 @@
 from django.db import models
 from collections import namedtuple
 
+class Institution(models.Model):
+    full_name = models.CharField(max_length=100)
+    nickname = models.CharField(max_length=50)
+
+    def __str__(self):
+        return f"{self.nickname}({self.full_name})"
+
+
 class Semester(models.Model):
     code = models.IntegerField()
 
@@ -14,6 +22,7 @@ class Course(models.Model):
     restriction = models.CharField(max_length=200, blank=True)
     prerequisite = models.CharField(max_length=200, blank=True)
     notes = models.CharField(max_length=400, blank=True)
+    institution = models.ForeignKey("Institution", on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.course_code}({self.credits}) {self.name[:20]}...'
