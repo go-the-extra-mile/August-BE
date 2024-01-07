@@ -11,6 +11,9 @@ class Course(models.Model):
     name = models.CharField(max_length=255)
     course_code = models.CharField(max_length=32)
     credits = models.IntegerField()
+    restriction = models.CharField(max_length=200, blank=True)
+    prerequisite = models.CharField(max_length=200, blank=True)
+    notes = models.CharField(max_length=400, blank=True)
 
     def __str__(self):
         return f'{self.course_code}({self.credits}) {self.name[:20]}...'
@@ -29,9 +32,10 @@ class Section(models.Model):
 class OpenedSection(models.Model):
     semester = models.ForeignKey('Semester', on_delete=models.CASCADE)
     section = models.ForeignKey('Section', on_delete=models.CASCADE)
-    seats = models.IntegerField()
-    open_seats = models.IntegerField()
-    waitlist = models.IntegerField()
+    seats = models.IntegerField("Number of total seats open", blank=True, null=True)
+    open_seats = models.IntegerField("Number of open seats currently", blank=True, null=True)
+    waitlist = models.IntegerField("Number of people on waitlist with higher priority", blank=True, null=True)
+    holdfile = models.IntegerField("Number of people on waitlist with lower priority", blank=True, null=True)
 
     def __str__(self):
         return f'{self.section} at {self.semester}'
