@@ -19,9 +19,6 @@ class Course(models.Model):
     name = models.CharField(max_length=255)
     course_code = models.CharField(max_length=32)
     credits = models.IntegerField()
-    restriction = models.CharField(max_length=200, blank=True)
-    prerequisite = models.CharField(max_length=200, blank=True)
-    notes = models.CharField(max_length=400, blank=True)
     institution = models.ForeignKey("Institution", on_delete=models.CASCADE)
 
     def __str__(self):
@@ -30,6 +27,9 @@ class Course(models.Model):
 class OpenedCourse(models.Model):
     semester = models.ForeignKey('Semester', on_delete=models.CASCADE)
     course = models.ForeignKey('Course', on_delete=models.CASCADE)
+    restriction = models.CharField(max_length=200, blank=True)
+    prerequisite = models.CharField(max_length=200, blank=True)
+    notes = models.CharField(max_length=400, blank=True)
 
 class Section(models.Model):
     course = models.ForeignKey('Course', on_delete=models.CASCADE)
