@@ -9,6 +9,7 @@ djangorestframework = "*"
 geopy = "*"
 psycopg2 = "*"
 gunicorn = "*"
+beautifulsoup4 = "*"
 
 [dev-packages]
 django-debug-toolbar = "*"
