@@ -27,9 +27,7 @@ class Course(models.Model):
 class OpenedCourse(models.Model):
     semester = models.ForeignKey('Semester', on_delete=models.CASCADE)
     course = models.ForeignKey('Course', on_delete=models.CASCADE)
-    restriction = models.CharField(max_length=200, blank=True)
-    prerequisite = models.CharField(max_length=200, blank=True)
-    notes = models.CharField(max_length=400, blank=True)
+    notes = models.CharField(max_length=600, blank=True)
 
 class Section(models.Model):
     course = models.ForeignKey('Course', on_delete=models.CASCADE)
