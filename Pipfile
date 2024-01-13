@@ -10,6 +10,7 @@ geopy = "*"
 psycopg2 = "*"
 gunicorn = "*"
 beautifulsoup4 = "*"
+pyyaml = "*"
 
 [dev-packages]
 django-debug-toolbar = "*"

@@ -1,0 +1,6 @@
+all semesters: false
+all institutions: false
+
+targets: 
+  University of Maryland:
+    - 202308

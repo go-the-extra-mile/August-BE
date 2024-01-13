@@ -1,0 +1,23 @@
+all semesters: false
+all institutions: false
+
+# when all semesters: true, all institutions: true
+# no further configuration needed
+
+# used when all semesters: false, all institutions: false
+# scrape the institutions for the list of semesters
+targets: 
+  University of Maryland:
+    - 202308
+
+# used when all semesters: false, all institutions: true
+# scrape the semesters in the list below for all institutions
+semesters:
+  # list of 6 digit semester numbers
+  - 202308
+
+# used when all semesters: true, all institutions: false
+# scrape the institutions in the list below for all semesters
+institutions: 
+  # list of full name of institutions
+  - University of Maryland
