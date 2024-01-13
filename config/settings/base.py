@@ -56,6 +56,7 @@ LOCAL_APPS = [
     'courses',
     'api_fetcher',
     'wizard',
+    'scraper'
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
