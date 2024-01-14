@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from apps.courses.serializers import CourseSectionSerializer
-from apps.courses.models import Course, Meeting, OpenedSection, Semester, Teach
+from apps.courses.models import Course, Meeting, OpenedCourse, OpenedSection, Semester, Teach
 
 # Create your views here.
 class OpenedSectionListView(generics.ListAPIView):
@@ -63,12 +63,15 @@ class OpenedSectionListView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset()) # queryset of OpenedSection
         
+        semester_code = self.request.query_params.get('semester')
         courses = Course.objects.filter(section__openedsection__in=queryset).distinct() # courses: distinct courses of queryset
+        opened_courses = OpenedCourse.objects.filter(course__in=courses, semester__code=semester_code)
         
         res = []
-        for course in courses:
-            course_opened_sections = queryset.filter(section__course=course)
-            res.append(CourseSectionSerializer(course, context={'course_opened_sections': course_opened_sections}).data)
+        for o_c in opened_courses:
+            course_opened_sections = queryset.filter(section__course=o_c.course)
+            notes = o_c.notes
+            res.append(CourseSectionSerializer(o_c.course, context={'course_opened_sections': course_opened_sections, 'notes': notes}).data)
 
         return Response(res)
     

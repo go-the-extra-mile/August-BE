@@ -113,11 +113,19 @@ class InstructorSectionSerializer(BaseInstructorSerializer):
 
 class CourseSectionSerializer(BaseCourseSerializer):
     sections_by_instructor = serializers.SerializerMethodField()
+    notes = serializers.SerializerMethodField()
     
     class Meta(BaseCourseSerializer.Meta):
         fields = BaseCourseSerializer.Meta.fields + (
+            'notes',
             'sections_by_instructor', 
         )
+
+    def get_notes(self, course):
+        notes = self.context.get('notes', None)
+        if notes is None: return None
+
+        return notes
 
     def get_sections_by_instructor(self, course):
         course_opened_sections = self.context.get('course_opened_sections', None)
