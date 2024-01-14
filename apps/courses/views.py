@@ -22,6 +22,7 @@ class OpenedSectionListView(generics.ListAPIView):
         semester_code = self.request.query_params.get("semester", None)
         query_type = self.request.query_params.get("querytype", None)
         query = self.request.query_params.get("query", None)
+        institution_id = self.request.query_params.get("institution_id", 1)
 
         if semester_code is None:
             raise ValidationError('Missing "semester" query parameter')
@@ -31,7 +32,7 @@ class OpenedSectionListView(generics.ListAPIView):
             raise ValidationError('Missing "query" query parameter')
 
         queryset = OpenedSection.objects.filter(
-            semester__code=semester_code
+            semester__code=semester_code, section__course__institution_id=institution_id
         ).select_related("section__course")
         if query_type == "code":
             if len(query) < 4:
