@@ -28,12 +28,7 @@ class InstructorNameTeachSerializer(serializers.ModelSerializer):
         return instance.instructor.name
 
 class OpenedSectionSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(source='section.course.name')
-    
-    course_code = serializers.CharField(source='section.course.course_code')
-    section_code = serializers.CharField(source='section.section_code')
-    credits = serializers.IntegerField(source='section.course.credits')
-
+    code = serializers.CharField(source='section.section_code')
     meetings = MeetingSerializer(source='meeting_set', many=True)
     instructors = InstructorNameTeachSerializer(source='teach_set', many=True)
 
@@ -41,12 +36,13 @@ class OpenedSectionSerializer(serializers.ModelSerializer):
         model = OpenedSection
         fields = (
             'id', 
-            'name', 
-            'course_code', 
-            'section_code', 
+            'code', 
             'instructors', 
             'meetings', 
-            'credits',
+            'seats',
+            'open_seats',
+            'waitlist',
+            'holdfile',
         )
         
 class MergedMeetingsOpenedSectionSerializer(OpenedSectionSerializer):
@@ -118,7 +114,7 @@ class InstructorSectionSerializer(BaseInstructorSerializer):
 
         return OpenedSectionIDOnlySerializer(instructor_sections, many=True).data
 
-class CourseSectionSerializer(BaseCourseSerializer):
+class CourseSectionByInstructorSerializer(BaseCourseSerializer):
     sections_by_instructor = serializers.SerializerMethodField()
     notes = serializers.SerializerMethodField()
     
@@ -149,3 +145,23 @@ class CourseSectionSerializer(BaseCourseSerializer):
             res.append(InstructorSectionSerializer(instructor, context={'instructor_sections': instructor_sections}).data)
         
         return res
+    
+class CourseSectionSerializer(BaseCourseSerializer):
+    notes = serializers.SerializerMethodField()
+    sections = serializers.SerializerMethodField()
+    class Meta(BaseCourseSerializer.Meta):
+        fields = BaseCourseSerializer.Meta.fields + (
+            'notes',
+            'sections',
+        )
+    
+    def get_notes(self, course):
+        notes = self.context.get('notes', None)
+        if notes is None: return None
+
+        return notes
+
+    def get_sections(self, course):
+        course_opened_sections = self.context.get('course_opened_sections', None)
+        if course_opened_sections is None: return None
+        return MergedMeetingsOpenedSectionSerializer(course_opened_sections, many=True).data
