@@ -3,7 +3,6 @@ from django.core.exceptions import ValidationError
 from django.db.models import Prefetch
 
 from rest_framework import generics, status
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from apps.courses.serializers import CourseSectionSerializer
@@ -46,23 +45,13 @@ class OpenedSectionListView(generics.ListAPIView):
             raise ValidationError(
                 'Invalid "querytype" query parameter. Acceptable values are "code", "name"'
             )
-
+        
         # prefetch related teach, instructors
         teach_set_prefetch = Prefetch(
             lookup="teach_set",
             queryset=Teach.objects.select_related("instructor"),
         )
         queryset = queryset.prefetch_related(teach_set_prefetch)
-
-        # prefetch related meetings, duration, location, and day
-        meeting_set_prefetch = Prefetch(
-            lookup="meeting_set",
-            queryset=Meeting.objects.select_related("duration", "location", "day"),
-        )
-        queryset = queryset.prefetch_related(meeting_set_prefetch)
-
-        # select related section, course
-        queryset = queryset.select_related("section__course")
 
         return queryset
 
@@ -73,28 +62,27 @@ class OpenedSectionListView(generics.ListAPIView):
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(
-            self.get_queryset()
-        )  # queryset of OpenedSection
-
-        semester_code = self.request.query_params.get("semester")
+        queryset = self.get_queryset() # queryset of OpenedSection
+        
+        opened_section_non_prefetched = queryset.prefetch_related(None)
         courses = Course.objects.filter(
-            section__openedsection__in=queryset
-        ).distinct()  # courses: distinct courses of queryset
+            section__openedsection__in=opened_section_non_prefetched
+        ) # courses: corresponding courses of queryset(opened sections)
+        semester = Semester.objects.get(code=request.query_params.get('semester'))
         opened_courses = OpenedCourse.objects.filter(
-            course__in=courses, semester__code=semester_code
-        )
+            course__in=courses,
+            semester=semester
+        ).select_related('course')
+        # opened_courses: corresponding opened_courses of queryset(opened sections)
 
         res = []
         for o_c in opened_courses:
-            course_opened_sections = queryset.filter(section__course=o_c.course)
-            notes = o_c.notes
             res.append(
                 CourseSectionSerializer(
                     o_c.course,
                     context={
-                        "course_opened_sections": course_opened_sections,
-                        "notes": notes,
+                        "course_opened_sections": queryset.filter(section__course_id=o_c.course_id),
+                        "notes": o_c.notes,
                     },
                 ).data
             )

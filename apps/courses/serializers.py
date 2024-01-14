@@ -98,6 +98,13 @@ class BaseInstructorSerializer(serializers.ModelSerializer):
             'name',
         )
 
+class OpenedSectionIDOnlySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OpenedSection
+        fields = (
+            'id',
+        )
+
 class InstructorSectionSerializer(BaseInstructorSerializer):
     sections = serializers.SerializerMethodField()
     class Meta(BaseInstructorSerializer.Meta):
@@ -109,7 +116,7 @@ class InstructorSectionSerializer(BaseInstructorSerializer):
         instructor_sections = self.context.get('instructor_sections')
         if instructor_sections is None: return None
 
-        return MergedMeetingsOpenedSectionSerializer(instructor_sections, many=True).data
+        return OpenedSectionIDOnlySerializer(instructor_sections, many=True).data
 
 class CourseSectionSerializer(BaseCourseSerializer):
     sections_by_instructor = serializers.SerializerMethodField()
