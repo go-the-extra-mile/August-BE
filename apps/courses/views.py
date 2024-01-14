@@ -25,12 +25,12 @@ class OpenedSectionListView(generics.ListAPIView):
         
         queryset = OpenedSection.objects.filter(semester__code=semester_code).select_related('section__course')
         if query_type == 'code':
-            if len(query) < 5: 
-                raise ValidationError('Provide course code of at least 5 letters')
+            if len(query) < 4: 
+                raise ValidationError('Provide course code of at least 4 letters')
             queryset = queryset.filter(section__course__course_code__icontains=query)
         elif query_type == 'name':
-            if len(query) < 5:
-                raise ValidationError('Provide course name of at least 5 letters')
+            if len(query) < 4:
+                raise ValidationError('Provide course name of at least 4 letters')
             queryset = queryset.filter(section__course__name__icontains=query)
         else:
             raise ValidationError('Invalid "querytype" query parameter. Acceptable values are "code", "name"')
