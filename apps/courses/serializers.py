@@ -2,6 +2,7 @@ from collections import defaultdict
 from rest_framework import serializers
 from apps.courses.models import (
     Course,
+    Institution,
     Instructor,
     Meeting,
     OpenedSection,
@@ -186,3 +187,13 @@ class CourseSectionSerializer(BaseCourseSerializer):
         return MergedMeetingsOpenedSectionSerializer(
             course_opened_sections, many=True
         ).data
+
+
+class InstitutionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Institution
+        fields = (
+            "id",
+            "full_name",
+            "nickname",
+        )

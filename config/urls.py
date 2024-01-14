@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.conf import settings
 
-from apps.courses.views import SemestersListView
+from apps.courses.views import SemestersListView, InstitutionListView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,6 +26,7 @@ urlpatterns = [
     path('sections/', include('courses.urls')), 
     path('wizard/', include('wizard.urls')), 
     path('semesters/', SemestersListView.as_view()),
+    path('institutions/', InstitutionListView.as_view()),
 ]
 
 if settings.DEBUG:

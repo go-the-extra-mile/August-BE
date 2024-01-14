@@ -8,9 +8,11 @@ from rest_framework.response import Response
 from apps.courses.serializers import (
     CourseSectionByInstructorSerializer,
     CourseSectionSerializer,
+    InstitutionSerializer,
 )
 from apps.courses.models import (
     Course,
+    Institution,
     Meeting,
     OpenedCourse,
     OpenedSection,
@@ -185,3 +187,7 @@ class SemestersListView(generics.ListAPIView):
         semester_codes = list(queryset.values_list("code", flat=True))
 
         return Response(semester_codes)
+
+class InstitutionListView(generics.ListAPIView):
+    queryset = Institution.objects.all()
+    serializer_class = InstitutionSerializer
