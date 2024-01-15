@@ -9,7 +9,7 @@ from django.db.models import Prefetch
 from django.core.exceptions import ValidationError
 
 from apps.courses.models import Meeting, OpenedSection, Teach
-from apps.courses.serializers import OpenedSectionSerializer
+from apps.wizard.serializers import WizardOpenedSectionSerializer
 
 
 class GenerateTimeTableMixin:
@@ -317,7 +317,7 @@ class GeneratedTimeTableView(GenerateTimeTableMixin, APIView):
         res = []
         try: 
             for table in self.generated_time_tables:
-                res.append(OpenedSectionSerializer(table, many=True).data)
+                res.append(WizardOpenedSectionSerializer(table, many=True).data)
         except TypeError as e:
             print(f"No generated time tables")
             print(e)
