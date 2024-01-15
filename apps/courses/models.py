@@ -78,7 +78,7 @@ class Building(models.Model):
 
 
 class Location(models.Model):
-    room = models.CharField(max_length=32)
+    room = models.CharField(max_length=32, blank=True)
     building = models.ForeignKey('Building', null=True, on_delete=models.CASCADE)
 
     def __str__(self):
