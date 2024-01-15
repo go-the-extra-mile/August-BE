@@ -28,14 +28,18 @@ class Command(BaseCommand):
                 for inst in institutions:
                     scraper = scrapers.get(inst)
                     scraper.run(test=test)
+                    print(f'Institution {inst} run finished')
             elif not all_semesters and all_institutions:
                 semesters = y.get('semesters')
                 for (_, scraper) in scrapers.items():
                     for sem in semesters:
                         scraper.run_semester(sem, test=test)
+                        print(f'Semester {sem} run finished')
             else:
                 targets = y.get('targets')
                 for (institution, semesters) in targets.items():
                     scraper = scrapers.get(institution)
                     for sem in semesters:
                         scraper.run_semester(sem, test=test)
+                        print(f'Semester {sem} run finished')
+                    print(f'Institution {institution} run finished')

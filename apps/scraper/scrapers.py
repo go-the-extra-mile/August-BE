@@ -30,9 +30,11 @@ class UMDScraper:
 
         deps = self.get_departments(sem)
         if test: deps = ['CMSC']
-        for dep in deps:
+        for idx, dep in enumerate(deps):
+            if idx+1 <= 10: continue
             open_sections_data = self.get_department_open_sections(sem, dep)
             self.save(sem, open_sections_data)
+            print(f'Save {dep} in term {sem} finished ({idx+1}/{len(deps)})')
 
 
     def get_semesters(self) -> list[int]:
@@ -182,13 +184,21 @@ class UMDScraper:
         
         courses = []
         soup = BeautifulSoup(response.content, "html.parser")
-        container = soup.find("div", class_="course-prefix-container").find("div", class_="courses-container")
+        container = soup.select_one("div.course-prefix-container div.courses-container")
+        if container is None:
+            return []
         course_divs = container.find_all("div", recursive=False)
         for course_div in course_divs:
             # Get course info like course code, name, credits, and notes including restriction, prerequisite and more
-            code = course_div.find("div", class_="course-id-container one columns").find("div", class_="course-id").string
-            name = course_div.find("div", class_="course-info-container eleven columns").find("div", class_="course-basic-info-container sixteen colgrid").find("span", class_="course-title").string
-            credits = int(course_div.find("div", class_="course-info-container eleven columns").find("div", class_="course-basic-info-container sixteen colgrid").find("span", class_="course-min-credits").string)
+            code = course_div.select_one("div.course-id-container.one.columns div.course-id")
+            if code is None: continue
+            code = code.string
+            name = course_div.select_one("div.course-info-container.eleven.columns div.course-basic-info-container.sixteen.colgrid span.course-title")
+            if name is None: continue
+            name = name.string
+            credits = course_div.select_one("div.course-info-container.eleven.columns div.course-basic-info-container.sixteen.colgrid span.course-min-credits")
+            if credits is None: continue
+            credits = int(credits.string)
 
             notes = str()
             course_detail = course_div.select("div.course-info-container.eleven.columns > div.approved-course-texts-container > div:nth-child(1) > div > div > div > div")
@@ -217,7 +227,7 @@ class UMDScraper:
             course_text = course_div.select("div.course-info-container.eleven.columns > div.course-texts-container > div > div > div")
             if len(course_text) > 0:
                 course_text = course_text[0].find(text=True, recursive=False)
-                if len(course_text) > 0: 
+                if course_text is not None and len(course_text) > 0: 
                     notes += f"\n{course_text}"
             
             course = {
@@ -330,7 +340,7 @@ class UMDScraper:
             start_time = None if m.get('start_time') is None else self.to_time(m.get('start_time'))
             end_time = None if m.get('start_time') is None else  self.to_time(m.get('end_time'))
             bldg = 'ONLINE' if m.get('room') == 'ONLINE' else m.get('bldg')
-            room = '' if m.get('room') == 'ONLINE' else m.get('room')
+            room = '' if (m.get('room') == 'ONLINE' or not m.get('room')) else m.get('room')
             for d in days_in_m:
                 reg_meeting = {
                     'day': d,
@@ -392,7 +402,7 @@ class UMDScraper:
             opened_course, _ = OpenedCourse.objects.update_or_create(
                 course=course,
                 semester=sem,
-                defaults={'notes': crs.get('notes')}
+                defaults={'notes': str(crs.get('notes'))[:600]}
             )
 
             for section in crs.get('sections'):
@@ -458,8 +468,6 @@ class UMDScraper:
                 remove_meetings_ids = [m.id for m in remove_meetings]
                 Meeting.objects.filter(id__in=remove_meetings_ids).delete()
 
-                print(f"Add or update opened section {opened_section} success")
-                
 scrapers = {
     "University of Maryland": UMDScraper()
 }
