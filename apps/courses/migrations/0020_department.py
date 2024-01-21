@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("full_name", models.CharField(max_length=50)),
+                ("full_name", models.CharField(max_length=100)),
                 ("nickname", models.CharField(max_length=10, blank=True)),
                 (
                     "institution",
@@ -51,5 +51,5 @@ class Migration(migrations.Migration):
                 ),
             ],
         ),
-        migrations.RunPython(init_UMD_departments),
+        migrations.RunPython(init_UMD_departments, migrations.RunPython.noop),
     ]

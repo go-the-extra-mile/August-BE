@@ -12,7 +12,7 @@ class Institution(models.Model):
 
 class Department(models.Model):
     institution = models.ForeignKey("Institution", on_delete=models.CASCADE)
-    full_name = models.CharField(max_length=50)
+    full_name = models.CharField(max_length=100)
     nickname = models.CharField(max_length=10, blank=True)
 
     def __str__(self):
