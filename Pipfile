@@ -11,6 +11,7 @@ psycopg2 = "*"
 gunicorn = "*"
 beautifulsoup4 = "*"
 pyyaml = "*"
+requests = "*"
 
 [dev-packages]
 django-debug-toolbar = "*"
