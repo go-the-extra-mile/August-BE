@@ -18,19 +18,23 @@ from django.contrib import admin
 from django.urls import include, path
 from django.conf import settings
 
-from apps.courses.views import DepartmentListView, SemestersListView, InstitutionListView
+from apps.courses.views import (
+    DepartmentListView,
+    SemestersListView,
+    InstitutionListView,
+)
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api-auth/', include('rest_framework.urls')), 
-    path('sections/', include('courses.urls')), 
-    path('wizard/', include('wizard.urls')), 
-    path('semesters/', SemestersListView.as_view()),
-    path('institutions/', InstitutionListView.as_view()),
-    path('departments/', DepartmentListView.as_view()),
+    path("admin/", admin.site.urls),
+    path("api-auth/", include("rest_framework.urls")),
+    path("sections/", include("courses.urls")),
+    path("wizard/", include("wizard.urls")),
+    path("semesters/", SemestersListView.as_view()),
+    path("institutions/", InstitutionListView.as_view()),
+    path("departments/", DepartmentListView.as_view()),
 ]
 
 if settings.DEBUG:
     urlpatterns = [
-        path("__debug__/", include("debug_toolbar.urls")), 
+        path("__debug__/", include("debug_toolbar.urls")),
     ] + urlpatterns
