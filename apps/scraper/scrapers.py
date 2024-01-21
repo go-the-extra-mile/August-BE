@@ -250,6 +250,7 @@ class UMDScraper:
                 # get section code, instructors, seats
                 section_info_div = section_div.select_one("div.section-info-container > div")
                 section['code'] = str(section_info_div.find("span", class_="section-id").string).strip()
+                section['code'] = course['code'] + '-' + section['code']
                 instructors_span = section_info_div.find("span", class_="section-instructors").find_all("span", class_="section-instructor")
                 section['instructors'] = list()
                 for inst in instructors_span:
