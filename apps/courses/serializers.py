@@ -32,7 +32,7 @@ class InstructorNameTeachSerializer(serializers.ModelSerializer):
 
 
 class OpenedSectionSerializer(serializers.ModelSerializer):
-    code = serializers.CharField(source="section.section_code")
+    full_code = serializers.CharField(source="section.section_code")
     meetings = MeetingSerializer(source="meeting_set", many=True)
     instructors = InstructorNameTeachSerializer(source="teach_set", many=True)
 
@@ -40,7 +40,7 @@ class OpenedSectionSerializer(serializers.ModelSerializer):
         model = OpenedSection
         fields = (
             "id",
-            "code",
+            "full_code",
             "instructors",
             "meetings",
             "seats",
@@ -102,10 +102,12 @@ class BaseInstructorSerializer(serializers.ModelSerializer):
         fields = ("name",)
 
 
-class OpenedSectionIDOnlySerializer(serializers.ModelSerializer):
+class SimpleOpenedSectionSerializer(serializers.ModelSerializer):
+    full_code = serializers.CharField(source="section.section_code")
+
     class Meta:
         model = OpenedSection
-        fields = ("id",)
+        fields = ("id", "full_code", "seats", "open_seats", "waitlist", "holdfile")
 
 
 class InstructorSectionSerializer(BaseInstructorSerializer):
@@ -119,7 +121,7 @@ class InstructorSectionSerializer(BaseInstructorSerializer):
         if instructor_sections is None:
             return None
 
-        return OpenedSectionIDOnlySerializer(instructor_sections, many=True).data
+        return SimpleOpenedSectionSerializer(instructor_sections, many=True).data
 
 
 class CourseSectionByInstructorSerializer(BaseCourseSerializer):

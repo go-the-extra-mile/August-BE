@@ -141,6 +141,9 @@ class OpenedSectionByCourseByInstructorListView(generics.ListAPIView):
         )
         queryset = queryset.prefetch_related(teach_set_prefetch)
 
+        # select related section for section_code retreival
+        queryset.select_related('section')
+
         return queryset
 
     def get(self, request, *args, **kwargs):

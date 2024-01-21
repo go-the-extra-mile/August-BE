@@ -3,11 +3,12 @@ from apps.courses.models import OpenedSection
 
 from apps.courses.serializers import InstructorNameTeachSerializer, MeetingSerializer
 
+
 class WizardOpenedSectionSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="section.course.name")
     credits = serializers.IntegerField(source="section.course.credits")
     course_code = serializers.CharField(source="section.course.course_code")
-    section_code = serializers.SerializerMethodField(method_name='get_course_section_code')
+    section_code = serializers.CharField(source="section.section_code")
     instructors = InstructorNameTeachSerializer(source="teach_set", many=True)
     meetings = MeetingSerializer(source="meeting_set", many=True)
 
@@ -26,9 +27,3 @@ class WizardOpenedSectionSerializer(serializers.ModelSerializer):
             "waitlist",
             "holdfile",
         )
-
-    def get_course_section_code(self, opened_section):
-        section_code = str(opened_section.section.section_code)
-        course_code = str(opened_section.section.course.course_code)
-
-        return course_code + "-" + section_code
