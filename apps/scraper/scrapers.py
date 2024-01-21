@@ -106,6 +106,55 @@ class UMDScraper:
         # Return the list of codes
         return codes
 
+    def get_departments_detailed(self, sem: int) -> list[dict]:
+        """
+        Get a list of department with the following format of a specific semester
+        :params
+            sem: semester code
+        :returns
+            a list of department detail objects
+            ```json
+                {
+                    "full_name": "Computer Science",
+                    "nickname": "CMSC"
+                }
+            ```
+        """
+        sems = self.get_semesters()
+        if sem not in sems:
+            raise ValueError(f"Invalid semester {sem}")
+
+        # Make a GET request to the website with the semester parameter
+        response = requests.get(self.BASE_URL + str(sem))
+        # Check for valid response by calling raise_for_status()
+        response.raise_for_status()
+        # Use BeautifulSoup to parse the HTML content
+        soup = BeautifulSoup(response.content, "html.parser")
+        # Find the div tag with the given selector
+        deps_div_tag = soup.find("div", id="course-prefixes-page")
+        # Initialize an empty list to store the codes
+        deps = []
+        # Loop through the div tags with class "course-prefix row" under the div tag
+        for dep_div_tag in deps_div_tag.find_all("div", class_="course-prefix row"):
+            # Find the a tag under each row
+            a = dep_div_tag.find("a")
+            # Get the href attribute of the a tag
+            href = a["href"]
+            # Split the href by "/" and get the second part
+            dep_code = href.split("/")[1]
+            # Get department name
+            dep_name = a.find("span", class_="prefix-name")
+            if dep_name is not None:
+                dep_name = dep_name.string
+            # Append dep to the list
+            deps.append(
+                {
+                    "full_name": dep_name,
+                    "nickname": dep_code,
+                }
+            )
+        # Return the list of codes
+        return deps
 
     def get_department_open_sections(self, sem: int, dep: str):
         """

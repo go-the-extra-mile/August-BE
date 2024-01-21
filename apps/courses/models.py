@@ -8,6 +8,13 @@ class Institution(models.Model):
     def __str__(self):
         return f"{self.nickname}({self.full_name})"
 
+class Department(models.Model):
+    institution = models.ForeignKey('Institution', on_delete=models.CASCADE)
+    full_name = models.CharField(max_length=50)
+    nickname = models.CharField(max_length=10, blank=True)
+
+    def __str__(self):
+        return f"{self.nickname}({self.full_name}) of {self.institution.nickname}"
 
 class Semester(models.Model):
     code = models.IntegerField()
