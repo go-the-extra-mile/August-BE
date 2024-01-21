@@ -8,10 +8,12 @@ from rest_framework.response import Response
 from apps.courses.serializers import (
     CourseSectionByInstructorSerializer,
     CourseSectionSerializer,
+    DepartmentSerializer,
     InstitutionSerializer,
 )
 from apps.courses.models import (
     Course,
+    Department,
     Institution,
     Meeting,
     OpenedCourse,
@@ -142,7 +144,7 @@ class OpenedSectionByCourseByInstructorListView(generics.ListAPIView):
         queryset = queryset.prefetch_related(teach_set_prefetch)
 
         # select related section for section_code retreival
-        queryset.select_related('section')
+        queryset.select_related("section")
 
         return queryset
 
@@ -191,6 +193,17 @@ class SemestersListView(generics.ListAPIView):
 
         return Response(semester_codes)
 
+
 class InstitutionListView(generics.ListAPIView):
     queryset = Institution.objects.all()
     serializer_class = InstitutionSerializer
+
+
+class DepartmentListView(generics.ListAPIView):
+    queryset = Department.objects.all()
+    serializer_class = DepartmentSerializer
+
+    def get_queryset(self):
+        institution_id = self.request.query_params.get("institution_id", 1)
+
+        return super().get_queryset().filter(institution_id=institution_id)
