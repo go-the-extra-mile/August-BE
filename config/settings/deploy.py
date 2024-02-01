@@ -3,8 +3,7 @@ from .base import *
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    '223.130.139.5',
-    'ec2-15-164-218-52.ap-northeast-2.compute.amazonaws.com',
+    get_secret('DEPLOY_HOST'),
     '127.0.0.1',
 ]
 
@@ -35,5 +34,5 @@ DJANGO_APPS += [
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 CSRF_TRUSTED_ORIGINS = [
-    'http://ec2-15-164-218-52.ap-northeast-2.compute.amazonaws.com:8081',
+    get_secret('DEPLOY_HOST_PORT'),
 ]
