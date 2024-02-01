@@ -12,6 +12,8 @@ gunicorn = "*"
 beautifulsoup4 = "*"
 pyyaml = "*"
 requests = "*"
+dj-rest-auth = {extras = ["with_social"], version = "*"}
+djangorestframework-simplejwt = "*"
 
 [dev-packages]
 django-debug-toolbar = "*"

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+from datetime import timedelta
 import json
 from pathlib import Path
 from django.core.exceptions import ImproperlyConfigured
@@ -37,6 +38,7 @@ SECRET_KEY = get_secret('SECRET_KEY')
 
 ALLOWED_HOSTS = []
 
+SITE_ID = 2
 
 # Application definition
 
@@ -46,17 +48,28 @@ DJANGO_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    "django.contrib.sites",  # dj-rest-auth
 ]
 
 THIRD_PARTY_APPS = [
     'rest_framework', 
+    "rest_framework.authtoken",
+    # dj-rest-auth
+    "dj_rest_auth",
+    "dj_rest_auth.registration",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    # django-allauth providers
+    "allauth.socialaccount.providers.google",
 ]
 
 LOCAL_APPS = [
     'courses',
     'api_fetcher',
     'wizard',
-    'scraper'
+    'scraper',
+    "users",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -69,6 +82,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "allauth.account.middleware.AccountMiddleware", # allauth
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -145,4 +159,42 @@ STATIC_ROOT = BASE_DIR / 'static'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'auth.User'
+
+# Auth, User
+
+AUTH_USER_MODEL = "users.User"  # custom user model
+
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+
+ACCOUNT_EMAIL_VERIFICATION = "none"
+
+REST_AUTH = {
+    "REGISTER_SERIALIZER": "users.serializers.CustomRegisterSerializer",
+    "USE_JWT": True,
+    "JWT_AUTH_COOKIE": "august-auth",
+    "JWT_AUTH_REFRESH_COOKIE": "august-refresh-token",
+    "JWT_AUTH_HTTPONLY": False,  # refresh_token will not be sent if True
+}
+
+ACCOUNT_ADAPTER = "apps.users.adapters.CustomAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "apps.users.adapters.CustomSocialAccountAdapter"
+
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    "django.contrib.auth.backends.ModelBackend",
+    # `allauth` specific authentication methods, such as login by email
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": ("dj_rest_auth.jwt_auth.JWTCookieAuthentication",)
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": True,
+}
