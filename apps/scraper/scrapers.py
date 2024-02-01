@@ -47,8 +47,6 @@ class UMDScraper:
         if test:
             deps = ["CMSC"]
         for idx, dep in enumerate(deps):
-            if idx + 1 <= 10:
-                continue
             open_sections_data = self.get_department_open_sections(sem, dep)
             self.save(sem, open_sections_data)
             print(f"Save {dep} in term {sem} finished ({idx+1}/{len(deps)})")
