@@ -5,6 +5,10 @@ from django.shortcuts import redirect
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+from apps.users.models import User
+
 
 from config.settings.base import get_secret
 
@@ -39,3 +43,19 @@ class GoogleLoginCallbackViewMobile(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
     callback_url = ""
     client_class = OAuth2Client
+
+
+class CheckRegisteredView(APIView):
+    def post(self, request, *args, **kwargs):
+        email = request.data.get("email")
+
+        try:
+            validate_email(email)
+        except ValidationError as ve:
+            return Response(
+                data={"error": ve.message}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        exists = User.objects.filter(email=email).exists()
+
+        return Response(data={"registered": exists})

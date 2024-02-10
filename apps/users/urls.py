@@ -1,6 +1,7 @@
 from django.urls import path
 
 from apps.users.views import (
+    CheckRegisteredView,
     GoogleLoginCallbackViewMobile,
     GoogleLoginView,
     GoogleLoginCallbackView,
@@ -19,4 +20,5 @@ urlpatterns = [
         GoogleLoginCallbackViewMobile.as_view(),
         name="google_login_callback_mobile",
     ),
+    path("registered", CheckRegisteredView.as_view(), name="check_registered"),
 ]
