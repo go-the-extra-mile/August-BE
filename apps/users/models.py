@@ -85,3 +85,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         "Does the user have permissions to view the app `app_label`?"
         # Simplest possible answer: Yes, always
         return True
+
+    def save(self, *args, **kwargs):
+        # Check if the department belongs to the institution
+        if self.department.institution != self.institution:
+            error_dict = {
+                "department": [
+                    f"Invalid department for institution {self.institution}"
+                ]
+            }
+            raise ValidationError(message=error_dict)
+        super().save(*args, **kwargs)

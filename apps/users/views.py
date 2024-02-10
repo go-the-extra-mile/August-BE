@@ -8,6 +8,9 @@ from rest_framework import status
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from apps.users.models import User
+from rest_framework import generics
+from apps.users.permissions import IsHimselfOrAdmin
+from apps.users.serializers import BasicUserSerializer, FullUserSerializer
 
 
 from config.settings.base import get_secret
@@ -59,3 +62,19 @@ class CheckRegisteredView(APIView):
         exists = User.objects.filter(email=email).exists()
 
         return Response(data={"registered": exists})
+
+
+class UserView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    permission_classes = [IsHimselfOrAdmin]
+
+    def get_serializer_class(self):
+        if self.request.user.is_staff:
+            return FullUserSerializer
+        return BasicUserSerializer
+
+    def update(self, request, *args, **kwargs):
+        try:
+            return super().update(request, *args, **kwargs)
+        except ValidationError as ve:
+            return Response(data=dict(ve), status=status.HTTP_400_BAD_REQUEST)

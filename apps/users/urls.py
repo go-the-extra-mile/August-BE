@@ -5,6 +5,7 @@ from apps.users.views import (
     GoogleLoginCallbackViewMobile,
     GoogleLoginView,
     GoogleLoginCallbackView,
+    UserView,
 )
 
 
@@ -21,4 +22,5 @@ urlpatterns = [
         name="google_login_callback_mobile",
     ),
     path("registered", CheckRegisteredView.as_view(), name="check_registered"),
+    path("<int:pk>", UserView.as_view(), name='user_detail'),
 ]

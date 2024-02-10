@@ -2,6 +2,7 @@ from dj_rest_auth.registration.serializers import RegisterSerializer
 from rest_framework import serializers
 
 from apps.courses.models import Department, Institution
+from apps.users.models import User
 
 
 class CustomRegisterSerializer(RegisterSerializer):
@@ -22,3 +23,27 @@ class CustomRegisterSerializer(RegisterSerializer):
             "password1": self.validated_data.get("password1", ""),
             "password2": self.validated_data.get("password2", ""),
         }
+
+
+class BasicUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "name",
+            "institution",
+            "department",
+        )
+
+
+class FullUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "email",
+            "is_active",
+            "is_staff",
+            "institution",
+            "department",
+            "name",
+        )
