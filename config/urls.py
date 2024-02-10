@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import include, path
 from django.conf import settings
@@ -23,7 +24,6 @@ from apps.courses.views import (
     SemestersListView,
     InstitutionListView,
 )
-from apps.users.views import GoogleLogin, GoogleOAuthCallbackView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -33,10 +33,9 @@ urlpatterns = [
     path("semesters/", SemestersListView.as_view()),
     path("institutions/", InstitutionListView.as_view()),
     path("departments/", DepartmentListView.as_view()),
-    path("dj-rest-auth/", include("dj_rest_auth.urls")), 
-    path('dj-rest-auth/registration/', include('dj_rest_auth.registration.urls')),
-    path('dj-rest-auth/google/', GoogleLogin.as_view(), name='google_login'),
-    path('dj-rest-auth/google/login/callback/', GoogleOAuthCallbackView.as_view(), name='google_login_callback'),
+    path("dj-rest-auth/", include("dj_rest_auth.urls")),
+    path("dj-rest-auth/registration/", include("dj_rest_auth.registration.urls")),
+    path("users/", include("users.urls")),
 ]
 
 if settings.DEBUG:
