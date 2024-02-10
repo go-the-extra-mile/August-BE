@@ -6,6 +6,7 @@ from django.contrib.auth.models import (
 )
 
 from apps.courses.models import Department, Institution
+from django.core.exceptions import ValidationError
 
 
 class UserManager(BaseUserManager):
@@ -66,6 +67,23 @@ class User(AbstractBaseUser, PermissionsMixin):
     institution = models.ForeignKey("courses.Institution", on_delete=models.DO_NOTHING)
     department = models.ForeignKey("courses.Department", on_delete=models.DO_NOTHING)
     name = models.CharField(max_length=255)
+    profile_image = models.ImageField(upload_to="profile_images/", blank=True)
+
+    FRESHMAN = "FR"
+    SOPHOMORE = "SO"
+    JUNIOR = "JR"
+    SENIOR = "SR"
+    GRADUATE = "GR"
+    YEAR_IN_SCHOOL_CHOICES = {
+        FRESHMAN: "Freshman",
+        SOPHOMORE: "Sophomore",
+        JUNIOR: "Junior",
+        SENIOR: "Senior",
+        GRADUATE: "Graduate",
+    }
+    year_in_school = models.CharField(
+        max_length=2, choices=YEAR_IN_SCHOOL_CHOICES, default=FRESHMAN
+    )
 
     objects = UserManager()
 
@@ -90,9 +108,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         # Check if the department belongs to the institution
         if self.department.institution != self.institution:
             error_dict = {
-                "department": [
-                    f"Invalid department for institution {self.institution}"
-                ]
+                "department": [f"Invalid department for institution {self.institution}"]
             }
             raise ValidationError(message=error_dict)
         super().save(*args, **kwargs)

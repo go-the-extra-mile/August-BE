@@ -32,6 +32,8 @@ class BasicUserSerializer(serializers.ModelSerializer):
             "name",
             "institution",
             "department",
+            "profile_image",
+            "year_in_school",
         )
 
 
@@ -46,4 +48,6 @@ class FullUserSerializer(serializers.ModelSerializer):
             "institution",
             "department",
             "name",
+            "profile_image",
+            "year_in_school",
         )
