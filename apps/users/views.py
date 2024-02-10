@@ -8,14 +8,6 @@ from rest_framework import status
 
 from config.settings.base import get_secret
 
-class GoogleOAuthCallbackView(APIView):
-    def get(self, request):
-        # code 값을 URL의 query string에서 추출
-        code = request.query_params.get("code")
-        if code:
-            response = self.forward_code_to_google_login_view(code)
-            if response.status_code == 200:
-                return Response(response.json(), status=status.HTTP_200_OK)
 
 class GoogleLoginView(APIView):
     def get(self, request, *args, **kwargs):
@@ -33,19 +25,18 @@ class GoogleLoginCallbackView(SocialLoginView):
     callback_url = get_secret("DEPLOY_HOST_PORT") + "/users/google/login/callback"
     client_class = OAuth2Client
 
-        return Response(
-            {"error": "Code not provided"}, status=status.HTTP_400_BAD_REQUEST
-        )
+    def get(self, request, *args, **kwargs):
+        code = request.query_params.get("code", None)
+        error = request.query_params.get("error", None)
+        if error:
+            return Response(data={"error": error}, status=status.HTTP_400_BAD_REQUEST)
 
-    def forward_code_to_google_login_view(self, code: str):
-        url = "http://127.0.0.1:8000/dj-rest-auth/google/"
-        payload = {"code": code}
-        headers = {"Content-Type": "application/json"}
-        response = requests.post(url, json=payload, headers=headers)
-        return response
+        self.request.data.update({"code": code})
+        print(f"code: {code}")
 
-
-class GoogleLogin(SocialLoginView):
+        return self.post(request, args, kwargs)
+    
+class GoogleLoginCallbackViewMobile(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
-    callback_url = "http://127.0.0.1:8000/dj-rest-auth/google/login/callback"
+    callback_url = ""
     client_class = OAuth2Client
