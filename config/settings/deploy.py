@@ -3,7 +3,7 @@ from .base import *
 DEBUG = False
 
 ALLOWED_HOSTS = [
-    get_secret('DEPLOY_HOST'),
+    '.augustapp.one',
     '127.0.0.1',
 ]
 
@@ -25,7 +25,10 @@ DATABASES = {
 }
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'static'
+STATIC_ROOT = '/var/www/augustapp.one/static/'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/var/www/augustapp.one/media/'
 
 DJANGO_APPS += [
     'django.contrib.staticfiles'
@@ -34,5 +37,5 @@ DJANGO_APPS += [
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 CSRF_TRUSTED_ORIGINS = [
-    get_secret('DEPLOY_HOST_PORT'),
+    'http://augustapp.one',
 ]
