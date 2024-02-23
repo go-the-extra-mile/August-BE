@@ -20,21 +20,10 @@ class CustomAccountAdapter(DefaultAccountAdapter):
 
 
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
-    def save_user(self, request, sociallogin, form=None):
-        from allauth.socialaccount.adapter import get_account_adapter
-
-        u = sociallogin.user
-        u.set_unusable_password()
-        if form:
-            get_account_adapter().save_user(request, u, form)
-        else:
-            get_account_adapter().populate_username(request, u)
-
-        # Set institution, department, and name
+    def populate_user(self, request, sociallogin, data):
+        user = super().populate_user(request, sociallogin, data)
         oauth_data = sociallogin.account.extra_data
-        u.institution_id = 1
-        u.department_id = 1
-        u.name = oauth_data.get("name")
+        user.name = oauth_data.get("name")
+        user.profile_image_url = oauth_data.get("picture")
 
-        sociallogin.save(request)
-        return u
+        return user

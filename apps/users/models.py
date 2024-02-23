@@ -64,10 +64,15 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-    institution = models.ForeignKey("courses.Institution", on_delete=models.DO_NOTHING)
-    department = models.ForeignKey("courses.Department", on_delete=models.DO_NOTHING)
-    name = models.CharField(max_length=255)
-    profile_image = models.ImageField(upload_to="profile_images/", blank=True)
+    institution = models.ForeignKey(
+        "courses.Institution", on_delete=models.DO_NOTHING, blank=True, null=True
+    )
+    department = models.ForeignKey(
+        "courses.Department", on_delete=models.DO_NOTHING, blank=True, null=True
+    )
+    name = models.CharField(max_length=255, blank=True)
+    profile_image_file = models.ImageField(upload_to="profile_images/", blank=True)
+    profile_image_url = models.URLField(blank=True)
 
     FRESHMAN = "FR"
     SOPHOMORE = "SO"
@@ -106,9 +111,24 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def save(self, *args, **kwargs):
         # Check if the department belongs to the institution
-        if self.department.institution != self.institution:
-            error_dict = {
-                "department": [f"Invalid department for institution {self.institution}"]
-            }
-            raise ValidationError(message=error_dict)
+        if self.department and self.institution:
+            if self.department.institution != self.institution:
+                error_dict = {
+                    "department": [
+                        f"Invalid department for institution {self.institution}"
+                    ]
+                }
+                raise ValidationError(message=error_dict)
         super().save(*args, **kwargs)
+
+    @property
+    def profile_image(self):
+        ret = self.profile_image_file or self.profile_image_url
+        return ret or None
+
+    @profile_image.setter
+    def profile_image(self, img):
+        # set profile image as provided image
+        self.profile_image_file = img
+        # remove profile image URL
+        self.profile_image_url = str()
