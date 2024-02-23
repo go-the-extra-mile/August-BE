@@ -42,12 +42,6 @@ class GoogleLoginCallbackView(SocialLoginView):
         return self.post(request, args, kwargs)
 
 
-class GoogleLoginCallbackViewMobile(SocialLoginView):
-    adapter_class = GoogleOAuth2Adapter
-    callback_url = ""
-    client_class = OAuth2Client
-
-
 class CheckRegisteredView(APIView):
     def post(self, request, *args, **kwargs):
         email = request.data.get("email")
