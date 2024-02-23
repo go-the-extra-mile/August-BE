@@ -29,3 +29,5 @@ ALLOWED_HOSTS = [
 
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = "media/"
+
+SIMPLE_JWT["ACCESS_TOKEN_LIFETIME"] = timedelta(hours=1)
