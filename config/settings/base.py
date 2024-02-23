@@ -175,7 +175,8 @@ ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_EMAIL_VERIFICATION = "none"
 
 REST_AUTH = {
-    "REGISTER_SERIALIZER": "users.serializers.CustomRegisterSerializer",
+    "USER_DETAILS_SERIALIZER": "apps.users.serializers.CustomUserDetailsSerializer",
+    "REGISTER_SERIALIZER": "apps.users.serializers.CustomRegisterSerializer",
     "USE_JWT": True,
     "JWT_AUTH_COOKIE": "august-auth",
     "JWT_AUTH_REFRESH_COOKIE": "august-refresh-token",

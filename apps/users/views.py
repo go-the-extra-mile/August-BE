@@ -1,18 +1,18 @@
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from django.shortcuts import redirect
+from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
-from django.shortcuts import redirect
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.core.validators import validate_email
-from django.core.exceptions import ValidationError
-from apps.users.models import User
-from rest_framework import generics
+
 from apps.users.permissions import IsHimselfOrAdmin
-from apps.users.serializers import BasicUserSerializer, FullUserSerializer
-
-
+from apps.users.serializers import CustomUserDetailsSerializer, FullUserSerializer
 from config.settings.base import get_secret
 
 
@@ -53,19 +53,39 @@ class CheckRegisteredView(APIView):
                 data={"error": ve.message}, status=status.HTTP_400_BAD_REQUEST
             )
 
-        exists = User.objects.filter(email=email).exists()
+        exists = get_user_model().objects.filter(email=email).exists()
 
         return Response(data={"registered": exists})
 
 
-class UserView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = User.objects.all()
+class UserView(generics.RetrieveUpdateAPIView):
+    queryset = get_user_model().objects.all()
     permission_classes = [IsHimselfOrAdmin]
 
     def get_serializer_class(self):
         if self.request.user.is_staff:
             return FullUserSerializer
-        return BasicUserSerializer
+        return CustomUserDetailsSerializer
+
+    def update(self, request, *args, **kwargs):
+        try:
+            return super().update(request, *args, **kwargs)
+        except ValidationError as ve:
+            return Response(data=dict(ve), status=status.HTTP_400_BAD_REQUEST)
+
+class UserDetailsView(generics.RetrieveUpdateAPIView):
+    serializer_class = CustomUserDetailsSerializer
+    permission_classes = (IsAuthenticated, )
+
+    def get_object(self):
+        return self.request.user
+
+    def get_queryset(self):
+        """
+        Adding this method since it is sometimes called when using
+        django-rest-swagger
+        """
+        return get_user_model().objects.none()
 
     def update(self, request, *args, **kwargs):
         try:
