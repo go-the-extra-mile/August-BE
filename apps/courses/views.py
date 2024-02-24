@@ -15,6 +15,7 @@ from apps.courses.models import (
     Course,
     Department,
     Institution,
+    InstitutionSupportedSemester,
     Meeting,
     OpenedCourse,
     OpenedSection,
@@ -185,12 +186,15 @@ class OpenedSectionByCourseByInstructorListView(generics.ListAPIView):
 
 
 class SemestersListView(generics.ListAPIView):
-    queryset = Semester.objects.all()
+    def get_queryset(self):
+        institution_id = self.request.query_params.get("institution_id", 1)
+        return InstitutionSupportedSemester.objects.filter(
+            institution_id=institution_id
+        )
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        semester_codes = list(queryset.values_list("code", flat=True))
-
+        semester_codes = list(queryset.values_list("semester__code", flat=True))
         return Response(semester_codes)
 
 

@@ -2,6 +2,14 @@ from django.db import models
 from collections import namedtuple
 
 
+class InstitutionSupportedSemester(models.Model):
+    institution = models.ForeignKey("Institution", on_delete=models.CASCADE)
+    semester = models.ForeignKey("Semester", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.institution} {self.semester}"
+
+
 class Institution(models.Model):
     full_name = models.CharField(max_length=100)
     nickname = models.CharField(max_length=50)
