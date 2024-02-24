@@ -398,11 +398,15 @@ class GeneratedTimeTableCountView(GenerateTimeTableMixin, APIView):
 
 
 class GeneratedTimeTableTestView(APIView):
-    with open('request.json') as f:
-        REQUEST = json.load(f)
+    test_request = None
+    
+    def __init__(self):
+        super().__init__()
+        with open('test/request.json') as f:
+            self.test_request = json.load(f)
 
     def get(self, request):
-        for key, val in self.REQUEST.items():
+        for key, val in self.test_request.items():
             request.data[key] = val
 
         test_view = GeneratedTimeTableView()
