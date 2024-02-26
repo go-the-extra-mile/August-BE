@@ -7,6 +7,8 @@ from django.contrib.auth.models import (
 
 from apps.courses.models import Department, Institution
 from django.core.exceptions import ValidationError
+from django_resized import ResizedImageField
+from pillow_heif import HeifImagePlugin
 
 
 class UserManager(BaseUserManager):
@@ -71,7 +73,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         "courses.Department", on_delete=models.DO_NOTHING, blank=True, null=True
     )
     name = models.CharField(max_length=255, blank=True)
-    profile_image_file = models.ImageField(upload_to="profile_images/", blank=True)
+    profile_image_file = ResizedImageField(
+        size=[600, 600],
+        crop=["middle", "center"],
+        quality=100,
+        keep_meta=False,  # remove exif data
+        upload_to="profile_images/",
+        blank=True,
+    )
+
     profile_image_url = models.URLField(blank=True)
 
     FRESHMAN = "FR"
