@@ -89,26 +89,11 @@ class Teach(models.Model):
 
 
 class Building(models.Model):
-    DEFAULT_LATITUDE = 38.98596
-    DEFAULT_LONGITUDE = -76.94457
-
     full_name = models.CharField("Full Name", max_length=255, blank=True)
     nickname = models.CharField("Short Name", max_length=127)
-    latitude = models.FloatField("위도", default=DEFAULT_LATITUDE)
-    longitude = models.FloatField("경도", default=DEFAULT_LONGITUDE)
 
     def __str__(self) -> str:
         return f"{self.nickname}"
-
-    def has_coordinates(self):
-        return (self.latitude, self.longitude) != (
-            self.DEFAULT_LATITUDE,
-            self.DEFAULT_LONGITUDE,
-        )
-
-    @property
-    def coordinates(self):
-        return (self.latitude, self.longitude)
 
 
 class Location(models.Model):
