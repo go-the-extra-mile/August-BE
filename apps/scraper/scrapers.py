@@ -1,6 +1,8 @@
 from datetime import datetime
 import requests
 from bs4 import BeautifulSoup
+from concurrent.futures import ThreadPoolExecutor
+import concurrent.futures
 
 from apps.courses.models import (
     Building,
@@ -17,6 +19,7 @@ from apps.courses.models import (
     Semester,
     Teach,
 )
+from apps.scraper.utils import timeit
 
 
 class UMDScraper:
@@ -25,15 +28,27 @@ class UMDScraper:
     INSTITUTION_FULL_NAME = "University of Maryland"
     INSTITUTION_NICKNAME = "UMD"
 
+    @timeit
     def run(self, test=False):
         sems = self.get_semesters()
         if test:
-            sems = [s for s in sems if str(s).endswith("12")]
+            sems = [s for s in sems if str(s).endswith("01")]
             sems = sems[0:1]
 
         for sem in sems:
             self.run_semester(sem, test)
 
+    @timeit
+    def arun(self, test=False):
+        sems = self.get_semesters()
+        if test:
+            sems = [s for s in sems if str(s).endswith("01")]
+            sems = sems[0:1]  # list of length 1 with only the first Spring semester
+
+        for sem in sems:
+            self.arun_semester(sem, test)
+
+    @timeit
     def run_semester(self, sem: int, test=False):
         """
         :params
@@ -43,13 +58,48 @@ class UMDScraper:
         if sem not in sems:
             raise ValueError(f"Invalid semester {sem}")
 
-        deps = self.get_departments(sem)
-        if test:
-            deps = ["CMSC"]
+        deps = ["ECON", "ENGL", "CMSC", "COMM"] if test else self.get_departments(sem)
+
         for idx, dep in enumerate(deps):
             open_sections_data = self.get_department_open_sections(sem, dep)
             self.save(sem, open_sections_data)
             print(f"Save {dep} in term {sem} finished ({idx+1}/{len(deps)})")
+
+    @timeit
+    def arun_semester(self, sem: int, test=False):
+        """
+        :params
+            sem: Semester code
+        """
+        sems = self.get_semesters()
+        if sem not in sems:
+            raise ValueError(f"Invalid semester {sem}")
+
+        deps = ["ECON", "ENGL", "CMSC", "COMM"] if test else self.get_departments(sem)
+
+        with ThreadPoolExecutor(max_workers=20) as executor:
+            future_dep_mapping = {}
+            for dep in deps:
+                future = executor.submit(self.get_department_open_sections, sem, dep)
+                future_dep_mapping[future] = dep
+
+            save_future_dep_mapping = {}
+            idx = 0
+            for future in concurrent.futures.as_completed(future_dep_mapping):
+                open_sections_data = future.result()
+                save_future = executor.submit(self.save, sem, open_sections_data)
+
+                dep = future_dep_mapping[future]
+                print(f"Scraping {dep} in term {sem} finished ({idx+1}/{len(deps)})")
+
+                save_future_dep_mapping[save_future] = dep
+                idx += 1
+
+            for save_future in concurrent.futures.as_completed(save_future_dep_mapping):
+                dep = save_future_dep_mapping[save_future]
+                print(f"Save {dep} in term {sem} finished")
+
+            print(f"All departments have been scraped and saved in term {sem}")
 
     def get_semesters(self) -> list[int]:
         """
