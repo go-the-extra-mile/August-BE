@@ -68,7 +68,6 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "courses",
-    "api_fetcher",
     "wizard",
     "scraper",
     "users",
