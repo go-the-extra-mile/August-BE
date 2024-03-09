@@ -3,6 +3,7 @@ from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
     CreateAPIView,
+    DestroyAPIView
 )
 from rest_framework.response import Response
 from rest_framework import status
@@ -56,16 +57,12 @@ class TimeTableSectionAddView(CreateAPIView):
         try:
             timetable = TimeTable.objects.get(
                 user=request.user,
-                semester=Semester.objects.get(code=self.kwargs["semester"]),
+                semester__code=self.kwargs["semester"],
                 order=self.kwargs["order"],
             )
         except TimeTable.DoesNotExist:
             return Response(
                 {"error": "TimeTable does not exist"}, status=status.HTTP_404_NOT_FOUND
-            )
-        except Semester.DoesNotExist:
-            return Response(
-                {"error": "Semester does not exist"}, status=status.HTTP_404_NOT_FOUND
             )
 
         try:
@@ -96,6 +93,28 @@ class TimeTableSectionAddView(CreateAPIView):
             )
 
         return Response(
-            {"message": "Successfully added section to timetable"},
             status=status.HTTP_201_CREATED,
         )
+
+class TimeTableSectionDeleteView(DestroyAPIView):
+    queryset = TimeTableOpenedSection.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    def destroy(self, request, *args, **kwargs):
+        section_id = self.kwargs['section_id']
+
+        try:
+            timetable = TimeTable.objects.get(user=request.user, semester__code=self.kwargs['semester'], order=self.kwargs['order'],)
+        except TimeTable.DoesNotExist:
+            return Response({"error": "Timetable does not exist"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Get the timetable opened section for the given section_id
+        try:
+            timetable_opened_section = TimeTableOpenedSection.objects.get(timetable=timetable, opened_section__id=section_id)
+        except TimeTableOpenedSection.DoesNotExist:
+            return Response({"error": "Section not in timetable"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Delete the TimeTableOpenedSection instance
+        timetable_opened_section.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
