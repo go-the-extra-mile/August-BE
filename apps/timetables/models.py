@@ -51,8 +51,8 @@ class TimeTable(models.Model):
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
-        if self.order is None:
-            self.order = self.get_order()
+        if not self.pk:  # if instance is being created (not updated)
+            self.order = self.get_order()  
 
         return super().save(force_insert, force_update, using, update_fields)
 
