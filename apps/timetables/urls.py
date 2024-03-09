@@ -18,5 +18,10 @@ urlpatterns = [
         "<int:semester>/<int:order>/sections/<int:section_id>/",
         views.TimeTableSectionDeleteView.as_view(),
         name="timetables-sections-delete",
-    )
+    ),
+    path(
+        "<int:semester>/reorder/", 
+        views.TimeTableReorderView.as_view(),
+        name="timetables-reorder",
+    ),
 ]

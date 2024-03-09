@@ -1,4 +1,4 @@
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import F
 from rest_framework.generics import (
     ListCreateAPIView,
@@ -8,6 +8,7 @@ from rest_framework.generics import (
 )
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.views import APIView
 
 from apps.courses.models import OpenedSection, Semester
 from apps.timetables.models import TimeTable, TimeTableOpenedSection
@@ -141,3 +142,41 @@ class TimeTableSectionDeleteView(DestroyAPIView):
         timetable_opened_section.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class TimeTableReorderView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        # Extract semester from the URL parameters
+        semester_code = self.kwargs["semester"]
+
+        new_order = request.data
+
+        # Get the timetables to be reordered
+        timetables = TimeTable.objects.filter(
+            user=request.user, semester__code=semester_code
+        ).order_by("order")
+
+        # Validate the new order
+        if set(new_order) != set(range(timetables.count())):
+            return Response(
+                {"error": "Invalid order"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Mapping of old order and new order
+        order_mapping = {old_order: new_order for old_order, new_order in enumerate(new_order)}
+
+        # Temporarily update the orders to (maximum order value) + 1 + (new order value)
+        with transaction.atomic():
+            for timetable in timetables:
+                timetable.order = len(new_order) + order_mapping[timetable.order]
+                timetable.save()
+
+        # Update the order of the timetables with the new order
+        with transaction.atomic():
+            for timetable in timetables:
+                timetable.order = F("order") - len(new_order)
+                timetable.save()
+
+        return Response(status=status.HTTP_200_OK)
+
