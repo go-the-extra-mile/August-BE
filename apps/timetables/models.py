@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from django.db.models import Sum
+from django.db.models import Sum, F
 
 from apps.courses.models import OpenedSection
 
@@ -30,6 +30,10 @@ class TimeTable(models.Model):
     def related_opened_sections(self):
         opened_sections = OpenedSection.objects.filter(
             timetableopenedsection__timetable=self
+        )
+        # annotate with course credits
+        opened_sections = opened_sections.annotate(
+            credits=F("section__course__credits")
         )
         return opened_sections
 
