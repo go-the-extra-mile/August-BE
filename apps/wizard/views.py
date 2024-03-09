@@ -224,6 +224,14 @@ class GenerateTimeTableMixin:
             groups.append(queryset)
 
         return groups
+    
+    def exclude_not_opened_sections(self):
+        res = []
+        for group in self.groups:
+            opened_sections = group.filter(open_seats__gt=0)
+            res.append(opened_sections)
+
+        self.groups = res
 
     def generate_with_options(self, opened_section_id_groups, options):
         if not isinstance(opened_section_id_groups, list) and all(
@@ -231,6 +239,10 @@ class GenerateTimeTableMixin:
         ):
             return
         self.groups = self.to_opened_sections_groups(opened_section_id_groups)
+
+        opened_sections_only = options.get("allow_only_open_section", False)
+        if opened_sections_only:
+            self.exclude_not_opened_sections()
 
         minimum_start_time = options.get("minimum_start_time", None)
         if minimum_start_time is not None:
