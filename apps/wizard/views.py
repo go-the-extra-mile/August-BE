@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Exists, OuterRef
 from django.core.exceptions import ValidationError
 
 from apps.courses.models import Meeting, OpenedSection, Teach
@@ -221,6 +221,12 @@ class GenerateTimeTableMixin:
                 ),
             )
             queryset = queryset.select_related("section__course")
+
+            # filter out sections that have no meetings
+            queryset = queryset.annotate(
+                has_meetings=Exists(Meeting.objects.filter(opened_section=OuterRef("pk")))
+            ).filter(has_meetings=True)
+            
             groups.append(queryset)
 
         return groups
