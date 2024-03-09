@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.core.exceptions import ValidationError
-from django.db.models import Prefetch
+from django.db.models import Prefetch, OuterRef, Exists
 
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -146,6 +146,12 @@ class OpenedSectionByCourseByInstructorListView(generics.ListAPIView):
 
         # select related section for section_code retreival
         queryset.select_related("section")
+
+        # annotate the existence of related Meetings
+        related_meetings = Meeting.objects.filter(opened_section=OuterRef("pk"))
+        queryset = queryset.annotate(
+            meetings_exist=Exists(related_meetings)
+        )
 
         return queryset
 
