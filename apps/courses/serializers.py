@@ -105,10 +105,12 @@ class BaseInstructorSerializer(serializers.ModelSerializer):
 
 class SimpleOpenedSectionSerializer(serializers.ModelSerializer):
     full_code = serializers.CharField(source="section.section_code")
+    meetings_exist = serializers.BooleanField()
 
     class Meta:
         model = OpenedSection
-        fields = ("id", "full_code", "seats", "open_seats", "waitlist", "holdfile")
+        fields = ("id", "full_code", "seats", "open_seats", "waitlist", "holdfile", "meetings_exist")
+        read_only_fields = ["full_code", "meetings_exist"]
 
 
 class InstructorSectionSerializer(BaseInstructorSerializer):
