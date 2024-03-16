@@ -4,6 +4,7 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
+from django.utils import timezone
 
 from apps.courses.models import Department, Institution
 from django.core.exceptions import ValidationError
@@ -81,6 +82,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         upload_to="profile_images/",
         blank=True,
     )
+    date_joined = models.DateTimeField(default=timezone.now)
 
     profile_image_url = models.URLField(blank=True)
 

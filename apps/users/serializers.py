@@ -62,9 +62,10 @@ class CustomUserDetailsSerializer(UserDetailsSerializer):
             "department_id",
             "profile_image",
             "year_in_school",
+            "date_joined",
         ]
         fields = ("id", *extra_fields)
-        read_only_fields = ("email", "institution", "department")
+        read_only_fields = ("email", "institution", "department", "date_joined")
         depth = 1
 
 
@@ -81,5 +82,6 @@ class FullUserSerializer(serializers.ModelSerializer):
             "name",
             "profile_image",
             "year_in_school",
+            "date_joined",
         )
-        read_only_fields = ("email",)
+        read_only_fields = ("email", "date_joined")
