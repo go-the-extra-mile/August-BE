@@ -23,16 +23,19 @@ class TimeTableListView(ListCreateAPIView):
 
     def get_queryset(self):
         semester_code = self.kwargs["semester"]
-        try:
-            semester = Semester.objects.get(code=semester_code)
-        except Semester.DoesNotExist:
-            return Response(
-                {"error": "Semester does not exist"}, status=status.HTTP_404_NOT_FOUND
-            )
+        semester = Semester.objects.get(code=semester_code)
 
         return TimeTable.objects.filter(
             user=self.request.user, semester=semester
         ).order_by("order")
+    
+    def list(self, request, *args, **kwargs):
+        try: 
+            return super().list(request, *args, **kwargs)
+        except Semester.DoesNotExist as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_404_NOT_FOUND
+            )
 
 
 class TimeTableView(RetrieveUpdateDestroyAPIView):
