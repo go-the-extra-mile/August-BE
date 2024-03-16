@@ -33,7 +33,7 @@ class InstructorNameTeachSerializer(serializers.ModelSerializer):
 
 
 class OpenedSectionSerializer(serializers.ModelSerializer):
-    full_code = serializers.CharField(source="section.section_code")
+    section_code = serializers.CharField(source="section.section_code")
     meetings = MeetingSerializer(source="meeting_set", many=True)
     instructors = InstructorNameTeachSerializer(source="teach_set", many=True)
     credits = serializers.IntegerField(required=False)
@@ -42,7 +42,7 @@ class OpenedSectionSerializer(serializers.ModelSerializer):
         model = OpenedSection
         fields = (
             "id",
-            "full_code",
+            "section_code",
             "instructors",
             "meetings",
             "seats",
@@ -51,7 +51,7 @@ class OpenedSectionSerializer(serializers.ModelSerializer):
             "holdfile",
             "credits",
         )
-        read_only_fields = ["full_code", "meetings", "instructors", "credits",]
+        read_only_fields = ["section_code", "meetings", "instructors", "credits",]
 
 
 class MergedMeetingsOpenedSectionSerializer(OpenedSectionSerializer):
@@ -107,13 +107,13 @@ class BaseInstructorSerializer(serializers.ModelSerializer):
 
 
 class SimpleOpenedSectionSerializer(serializers.ModelSerializer):
-    full_code = serializers.CharField(source="section.section_code")
+    section_code = serializers.CharField(source="section.section_code")
     meetings_exist = serializers.BooleanField()
 
     class Meta:
         model = OpenedSection
-        fields = ("id", "full_code", "seats", "open_seats", "waitlist", "holdfile", "meetings_exist")
-        read_only_fields = ["full_code", "meetings_exist"]
+        fields = ("id", "section_code", "seats", "open_seats", "waitlist", "holdfile", "meetings_exist")
+        read_only_fields = ["section_code", "meetings_exist"]
 
 
 class InstructorSectionSerializer(BaseInstructorSerializer):
