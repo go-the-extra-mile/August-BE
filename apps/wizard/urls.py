@@ -11,4 +11,5 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += [
         path("schedules-test/", views.GeneratedTimeTableTestView.as_view()),
+        path("schedules-test/count/", views.GeneratedTimeTableCountTestView.as_view()),
     ]
