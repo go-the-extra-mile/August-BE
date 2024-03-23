@@ -4,7 +4,7 @@ from rest_framework import status
 
 from django.core.exceptions import ValidationError
 
-from apps.wizard.serializers import WizardOpenedSectionSerializer
+from apps.wizard.serializers import OpenedSectionWithCourseNameSerializer
 from apps.wizard.mixins import GenerateTimeTableMixin
 
 import json
@@ -27,7 +27,7 @@ class GeneratedTimeTableView(GenerateTimeTableMixin, APIView):
 
         res = []
         for table in timetables:
-            res.append(WizardOpenedSectionSerializer(table, many=True).data)
+            res.append(OpenedSectionWithCourseNameSerializer(table, many=True).data)
 
         return Response(res)
 

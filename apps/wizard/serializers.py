@@ -4,7 +4,7 @@ from apps.courses.models import OpenedSection
 from apps.courses.serializers import InstructorNameTeachSerializer, MeetingSerializer
 
 
-class WizardOpenedSectionSerializer(serializers.ModelSerializer):
+class OpenedSectionWithCourseNameSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source="section.course.name")
     credits = serializers.IntegerField(source="section.course.credits")
     course_code = serializers.CharField(source="section.course.course_code")
