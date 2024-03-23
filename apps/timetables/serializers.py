@@ -1,11 +1,10 @@
 from rest_framework import serializers
 from apps.courses.models import OpenedSection, Semester
-from apps.courses.serializers import OpenedSectionSerializer
 from apps.timetables.models import TimeTable, TimeTableOpenedSection
-
+from apps.wizard.serializers import OpenedSectionWithCourseNameSerializer
 
 class TimeTableSerializer(serializers.ModelSerializer):
-    sections = OpenedSectionSerializer(many=True, read_only=True, source='related_opened_sections')
+    sections = OpenedSectionWithCourseNameSerializer(many=True, read_only=True, source='related_opened_sections')
     credits = serializers.IntegerField(read_only=True)
     section_ids = serializers.PrimaryKeyRelatedField(queryset=OpenedSection.objects.all(), write_only=True, many=True)
 
